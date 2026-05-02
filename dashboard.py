@@ -2,7 +2,6 @@ import streamlit as st
 import threading
 import time
 import queue
-import json
 from datetime import datetime
 from collections import deque
 
@@ -143,7 +142,7 @@ html, body, [class*="css"] {
 .email-sender { font-weight: 600; color: #c7d2fe; font-size: 0.9rem; }
 .email-subject { color: #94a3b8; font-size: 0.82rem; margin-top: 0.15rem; }
 .email-time { color: #475569; font-size: 0.75rem; font-family: 'Space Mono', monospace; }
-.email-replied { 
+.email-replied {
     float: right; font-size: 0.7rem; padding: 0.15rem 0.5rem;
     background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.25);
     border-radius: 100px; color: #22c55e; font-family: 'Space Mono', monospace;
@@ -293,7 +292,7 @@ st.markdown(f"""
 <div class="agent-header">
     <div>
         <div class="agent-title">✉️ EMAIL-AI-AGENT</div>
-        <div class="agent-subtitle">Autonomous email agent powered by Google Gemini 1.5 Flash</div>
+        <div class="agent-subtitle">Autonomous email agent powered by Google Gemini</div>
     </div>
     <div style="margin-left:auto;">
         <div class="status-pill {status_class}">
