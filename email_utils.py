@@ -7,7 +7,6 @@ from config import EMAIL_ADDRESS, EMAIL_PASSWORD
 
 IMAP_SERVER = "imap.gmail.com"
 SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 465
 
 
 def fetch_unread_emails():
@@ -24,9 +23,9 @@ def fetch_unread_emails():
                 raw = msg_data[0][1]
                 msg = email.message_from_bytes(raw)
 
-                sender = msg.get("From", "")
+                sender  = msg.get("From", "")
                 subject = msg.get("Subject", "(no subject)")
-                body = ""
+                body    = ""
 
                 if msg.is_multipart():
                     for part in msg.walk():
@@ -55,16 +54,35 @@ def fetch_unread_emails():
 
 
 def send_reply(to: str, subject: str, body: str):
-    try:
-        msg = MIMEMultipart()
-        msg["From"] = EMAIL_ADDRESS
-        msg["To"] = to
-        msg["Subject"] = f"Re: {subject}" if not subject.startswith("Re:") else subject
-        msg.attach(MIMEText(body, "plain"))
+    """Try port 587 (TLS) first, then 465 (SSL) as fallback."""
+    subject_line = f"Re: {subject}" if not subject.startswith("Re:") else subject
 
-        with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT) as server:
+    msg = MIMEMultipart()
+    msg["From"]    = EMAIL_ADDRESS
+    msg["To"]      = to
+    msg["Subject"] = subject_line
+    msg.attach(MIMEText(body, "plain"))
+
+    # Try port 587 with STARTTLS first
+    try:
+        with smtplib.SMTP(SMTP_SERVER, 587, timeout=30) as server:
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
             server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
             server.sendmail(EMAIL_ADDRESS, to, msg.as_string())
-    except Exception as e:
-        print(f"❌ SMTP error: {e}")
-        raise
+            print(f"✅ Reply sent via port 587 to {to}")
+            return
+    except Exception as e1:
+        print(f"⚠️  Port 587 failed: {e1} — trying port 465...")
+
+    # Fallback: port 465 with SSL
+    try:
+        with smtplib.SMTP_SSL(SMTP_SERVER, 465, timeout=30) as server:
+            server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+            server.sendmail(EMAIL_ADDRESS, to, msg.as_string())
+            print(f"✅ Reply sent via port 465 to {to}")
+            return
+    except Exception as e2:
+        print(f"❌ Port 465 also failed: {e2}")
+        raise Exception(f"Both ports failed. 587: {e1} | 465: {e2}")
