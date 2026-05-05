@@ -302,7 +302,7 @@ with h1:
     st.markdown("""
     <div class="cyber-header">
         <div class="cyber-title">✉ EMAIL<span>-AI-</span>AGENT</div>
-        <div class="cyber-subtitle">> AUTONOMOUS EMAIL AGENT // POWERED BY GOOGLE GEMINI</div>
+        <div class="cyber-subtitle">> AUTONOMOUS EMAIL AGENT</div>
     </div>""", unsafe_allow_html=True)
 with h2:
     st.markdown(f"""
