@@ -1,7 +1,7 @@
-from google import genai
+from groq import Groq
 from config import GEMINI_API_KEY
 
-client = genai.Client(api_key=GEMINI_API_KEY)
+client = Groq(api_key="your_groq_api_key")
 
 def generate_reply(email_body: str) -> str:
     prompt = f"""You are a professional email assistant.
@@ -11,8 +11,8 @@ Email:
 {email_body}
 
 Reply:"""
-    response = client.models.generate_content(
-        model="gemini-2.0-flash",
-        contents=prompt
+    response = client.chat.completions.create(
+        model="llama3-8b-8192",
+        messages=[{"role": "user", "content": prompt}]
     )
-    return response.text.strip()
+    return response.choices[0].message.content.strip()
