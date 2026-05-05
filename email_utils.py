@@ -43,18 +43,17 @@ def fetch_unread_emails():
 
                 emails.append({"sender": sender, "subject": subject, "body": body})
             except Exception as e:
-                print(f"⚠️  Skipping email: {e}")
+                print(f"Skipping email: {e}")
 
         mail.logout()
     except Exception as e:
-        print(f"❌ IMAP error: {e}")
+        print(f"IMAP error: {e}")
         raise
 
     return emails
 
 
 def send_reply(to: str, subject: str, body: str):
-    """Try port 587 (TLS) first, then 465 (SSL) as fallback."""
     subject_line = f"Re: {subject}" if not subject.startswith("Re:") else subject
 
     msg = MIMEMultipart()
@@ -62,6 +61,9 @@ def send_reply(to: str, subject: str, body: str):
     msg["To"]      = to
     msg["Subject"] = subject_line
     msg.attach(MIMEText(body, "plain"))
+
+    error_587 = None
+    error_465 = None
 
     # Try port 587 with STARTTLS first
     try:
@@ -71,18 +73,17 @@ def send_reply(to: str, subject: str, body: str):
             server.ehlo()
             server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
             server.sendmail(EMAIL_ADDRESS, to, msg.as_string())
-            print(f"✅ Reply sent via port 587 to {to}")
             return
-    except Exception as e1:
-        print(f"⚠️  Port 587 failed: {e1} — trying port 465...")
+    except Exception as e:
+        error_587 = str(e)
 
     # Fallback: port 465 with SSL
     try:
         with smtplib.SMTP_SSL(SMTP_SERVER, 465, timeout=30) as server:
             server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
             server.sendmail(EMAIL_ADDRESS, to, msg.as_string())
-            print(f"✅ Reply sent via port 465 to {to}")
             return
-    except Exception as e2:
-        print(f"❌ Port 465 also failed: {e2}")
-        raise Exception(f"Both ports failed. 587: {e1} | 465: {e2}")
+    except Exception as e:
+        error_465 = str(e)
+
+    raise Exception(f"Both ports failed. 587: {error_587} | 465: {error_465}")
